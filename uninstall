@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+target_dotfiles="${HOME}/.dotfiles-vim"
+target_vimrc="${HOME}/.vimrc"
+
+# Confirm or abort uninstall
+read -r -p 'Sure to uninstall (y/n [n])? '
+
+if [[ ! "${REPLY}" =~ ^[Yy]$ ]]; then
+    echo 'Ok then, nothing much to see here.'
+    exit 0
+fi
+
+# Remove existing files, if any
+echo 'Checking existing files...'
+
+if [[ -d "${target_dotfiles}" ]]; then
+    echo -n "~ Removing '${target_dotfiles}'..."
+    rm -rf "${target_dotfiles}"
+    echo ' done.'
+else
+    echo "~ Folder '${target_dotfiles}' not found."
+fi
+
+if [[ -L "${target_vimrc}" ]]; then
+    echo -n "~ Removing '${target_vimrc}'..."
+    rm -f "${target_vimrc}"
+    echo ' done.'
+else
+    echo "~ File '${target_vimrc}' not found."
+fi
+
+# Restore latest backup, if any
+read -r -p 'Check for backups? (y/n [n])? '
+
+if [[ ! "${REPLY}" =~ ^[Yy]$ ]]; then
+    echo 'All good and clean... farewell.'
+    exit 0
+fi
+
+backed_up_dotfiles=$(find "${HOME}" -maxdepth 1 -type d -name '.dotfiles-cim *' | sort -r | head -n1)
+backed_up_vimrc=$(find "${HOME}" -maxdepth 1 -type f -name '.vimrc *' | sort -r | head -n1)
+
+echo 'Checking backups...'
+
+if [[ -n "${backed_up_dotfiles}" ]]; then
+    echo -n "~ Restoring '${backed_up_dotfiles}'..."
+    mv -f "${backed_up_dotfiles}" "${target_dotfiles}"
+    echo ' done.'
+else
+    echo "~ No backup for '${target_dotfiles}'."
+fi
+
+if [[ -n "${backed_up_vimrc}" ]]; then
+    echo -n "~ Restoring '${backed_up_vimrc}'..."
+    mv -f "${backed_up_vimrc}" "${target_vimrc}"
+    echo ' done.'
+else
+    echo "~ No backup for '${target_vimrc}'."
+fi
+
+# Return successfully, just in case
+echo 'All good and clean... farewell.'
+exit 0

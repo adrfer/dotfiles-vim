@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+target_dotfiles="${HOME}/.dotfiles-vim"
+source_dotfiles='https://github.com/adrfer/dotfiles-vim.git'
+
+target_vimrc="${HOME}/.vimrc"
+source_vimrc="${target_dotfiles}/vimrc"
+
+# Bail if git cannot be found
+if ! command -v 'git' >/dev/null; then
+    echo -n 'Ooops, git not found.'
+    exit 1
+fi
+
+# Backup existing files, if any
+echo 'Backing up existing files...'
+
+if [[ -d "${target_dotfiles}" ]]; then
+    echo -n "~ Backup for ${target_dotfiles}..."
+    mv -f "${target_dotfiles}"{,"$(date '+ %F at %H.%M.%S %p')"}
+    echo ' done.'
+fi
+
+if [[ -f "${target_vimrc}" ]]; then
+    echo -n "~ Backup for ${target_vimrc}..."
+    mv -f "${target_vimrc}"{,"$(date '+ %F at %H.%M.%S %p')"}
+    echo ' done.'
+fi
+
+# Download new files
+echo -n 'Downloading some git badassery...'
+
+if git clone "${source_dotfiles}" "${target_dotfiles}" >/dev/null 2>&1; then
+    echo ' done.'
+else
+    echo
+    echo "Ooops, unable to access ${source_dotfiles}, try again."
+    exit 1
+fi
+
+# Setup existing and new files
+echo -n 'Finishing setup...'
+ln -sf "${source_vimrc}" "${target_vimrc}"
+echo ' done.'
+
+# Return successfully, just in case
+echo 'All good, enjoy!'
+exit 0
